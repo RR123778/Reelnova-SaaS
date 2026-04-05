@@ -1,0 +1,143 @@
+<!DOCTYPE html><html>
+<head>
+  <title>Ramjee Fashion SaaS 💰</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+  <style>
+    body { font-family: Arial; margin:0; background:#f5f5f5; }
+    header { background:#ff4081; color:white; padding:15px; text-align:center; }
+    .container { padding:15px; }
+    .box { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
+    button { background:#25D366; color:white; border:none; padding:10px; border-radius:5px; margin-top:5px; }
+    input { width:100%; padding:10px; margin-bottom:10px; }
+  </style>
+</head>
+<body><header>
+  <h2>Ramjee Fashion SaaS Platform 🚀</h2>
+</header><div class="container">  <div class="box">
+    <h3>User Signup/Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+    <button onclick="login()">Login</button>
+  </div>  <div class="box">
+    <h3>Create Blog (User Panel)</h3>
+    <input type="text" id="topic" placeholder="Enter topic">
+    <button onclick="createBlog()">Generate Blog</button>
+  </div>  <div class="box">
+    <h3>User Earnings 💰</h3>
+    <p id="earnings">₹0</p>
+  </div>  <div class="box">
+    <h3>Admin Panel</h3>
+    <button onclick="loadUsers()">View Users</button>
+    <div id="users"></div>
+  </div></div><script>
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let currentUser;
+
+function signup(){
+  let email = emailEl().value;
+  let password = passEl().value;
+
+  auth.createUserWithEmailAndPassword(email, password)
+  .then(user=>{
+    db.collection("users").doc(user.user.uid).set({
+      email: email,
+      earnings: 0,
+      plan: "free"
+    });
+    alert("Signup Success");
+  })
+  .catch(e=>alert(e.message));
+}
+
+function login(){
+  auth.signInWithEmailAndPassword(emailEl().value, passEl().value)
+  .then(user=>{
+    currentUser = user.user;
+    loadEarnings();
+    alert("Login Success");
+  })
+  .catch(e=>alert(e.message));
+}
+
+function emailEl(){ return document.getElementById("email"); }
+function passEl(){ return document.getElementById("password"); }
+
+// 🤖 Blog + earning system
+function createBlog(){
+  let topic = document.getElementById("topic").value;
+
+  let content = `🔥 ${topic} trending blog. Buy now 👉 YOUR_AFFILIATE_LINK`;
+
+  db.collection("blogs").add({
+    user: currentUser.uid,
+    topic: topic,
+    content: content,
+    time: new Date()
+  });
+
+  // 💰 earning add
+  let earn = Math.floor(Math.random()*50);
+
+  let userRef = db.collection("users").doc(currentUser.uid);
+  userRef.get().then(doc=>{
+    let total = doc.data().earnings + earn;
+    userRef.update({ earnings: total });
+    document.getElementById("earnings").innerText = "₹"+total;
+  });
+
+  // Share
+  window.open("https://wa.me/?text="+encodeURIComponent(content));
+}
+
+function loadEarnings(){
+  db.collection("users").doc(currentUser.uid).get()
+  .then(doc=>{
+    document.getElementById("earnings").innerText = "₹"+doc.data().earnings;
+  });
+}
+
+// 👨‍💻 Admin
+function loadUsers(){
+  db.collection("users").get().then(snapshot=>{
+    let html="";
+    snapshot.forEach(doc=>{
+      let d = doc.data();
+      html += `<p>${d.email} - ₹${d.earnings}</p>`;
+    });
+    document.getElementById("users").innerHTML = html;
+  });
+}
+
+</script></body> 
+</html><script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCoeqPZSmF7x-ewcUv1jTc4XOG-wkrAjCs",
+    authDomain: "reelnova-saas.firebaseapp.com",
+    projectId: "reelnova-saas",
+    storageBucket: "reelnova-saas.firebasestorage.app",
+    messagingSenderId: "405544472799",
+    appId: "1:405544472799:web:4161ebe5f6022d9e4f196a"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
