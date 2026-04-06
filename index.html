@@ -1,143 +1,184 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-  <title>Ramjee Fashion SaaS 💰</title>
+  <title>ReelNova SaaS 💰</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-  <style>
-    body { font-family: Arial; margin:0; background:#f5f5f5; }
-    header { background:#ff4081; color:white; padding:15px; text-align:center; }
-    .container { padding:15px; }
-    .box { background:white; padding:15px; margin-bottom:15px; border-radius:10px; }
-    button { background:#25D366; color:white; border:none; padding:10px; border-radius:5px; margin-top:5px; }
-    input { width:100%; padding:10px; margin-bottom:10px; }
-  </style>
 </head>
-<body><header>
-  <h2>Ramjee Fashion SaaS Platform 🚀</h2>
-</header><div class="container">  <div class="box">
-    <h3>User Signup/Login</h3>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+
+<body style="font-family:Arial; background:#f5f5f5; margin:0;">
+
+<header style="background:#ff4081; color:white; padding:15px; text-align:center;">
+  <h2>ReelNova SaaS Platform 🚀</h2>
+</header>
+
+<div style="padding:15px;">
+
+  <!-- LOGIN -->
+  <div style="background:white; padding:15px; margin-bottom:15px; border-radius:10px;">
+    <h3>Login / Signup</h3>
+    <input id="email" placeholder="Email" style="width:100%; padding:10px;"><br><br>
+    <input id="password" type="password" placeholder="Password" style="width:100%; padding:10px;"><br><br>
     <button onclick="signup()">Signup</button>
     <button onclick="login()">Login</button>
-  </div>  <div class="box">
-    <h3>Create Blog (User Panel)</h3>
-    <input type="text" id="topic" placeholder="Enter topic">
-    <button onclick="createBlog()">Generate Blog</button>
-  </div>  <div class="box">
-    <h3>User Earnings 💰</h3>
+  </div>
+
+  <!-- BLOG -->
+  <div style="background:white; padding:15px; margin-bottom:15px; border-radius:10px;">
+    <h3>Create Viral Post</h3>
+    <input id="topic" placeholder="Enter topic" style="width:100%; padding:10px;"><br><br>
+    <button onclick="createPost()">Generate + Share</button>
+  </div>
+
+  <!-- EARNINGS -->
+  <div style="background:white; padding:15px; margin-bottom:15px; border-radius:10px;">
+    <h3>Your Earnings 💰</h3>
     <p id="earnings">₹0</p>
-  </div>  <div class="box">
+  </div>
+
+  <!-- ADMIN -->
+  <div style="background:white; padding:15px; border-radius:10px;">
     <h3>Admin Panel</h3>
     <button onclick="loadUsers()">View Users</button>
     <div id="users"></div>
-  </div></div><script>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
+  projectId: "YOUR_PROJECT_ID"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
-let currentUser;
+let currentUser = null;
 
-function signup(){
-  let email = emailEl().value;
-  let password = passEl().value;
+// 🔐 Signup
+window.signup = async function(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-  auth.createUserWithEmailAndPassword(email, password)
-  .then(user=>{
-    db.collection("users").doc(user.user.uid).set({
-      email: email,
-      earnings: 0,
-      plan: "free"
-    });
-    alert("Signup Success");
-  })
-  .catch(e=>alert(e.message));
+  const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+  await setDoc(doc(db, "users", userCred.user.uid), {
+    email,
+    clicks: 0,
+    earnings: 0
+  });
+
+  alert("Signup Success");
 }
 
-function login(){
-  auth.signInWithEmailAndPassword(emailEl().value, passEl().value)
-  .then(user=>{
-    currentUser = user.user;
-    loadEarnings();
-    alert("Login Success");
-  })
-  .catch(e=>alert(e.message));
+// 🔐 Login
+window.login = async function(){
+  const userCred = await signInWithEmailAndPassword(auth,
+    document.getElementById("email").value,
+    document.getElementById("password").value
+  );
+
+  currentUser = userCred.user;
+  loadEarnings();
+  alert("Login Success");
 }
 
-function emailEl(){ return document.getElementById("email"); }
-function passEl(){ return document.getElementById("password"); }
+// 🧠 Product List
+const products = [
+  {
+    name: "Stylish Saree",
+    price: "₹299",
+    link: "https://yourdomain.com/go?url=https://meesho.com/product1"
+  },
+  {
+    name: "Kurti Set",
+    price: "₹399",
+    link: "https://yourdomain.com/go?url=https://meesho.com/product2"
+  },
+  {
+    name: "Men T-Shirt Combo",
+    price: "₹499",
+    link: "https://yourdomain.com/go?url=https://meesho.com/product3"
+  }
+];
 
-// 🤖 Blog + earning system
-function createBlog(){
+// 🎯 Post Generator
+window.createPost = async function(){
+  if(!currentUser){
+    alert("Login first");
+    return;
+  }
+
   let topic = document.getElementById("topic").value;
+  let p = products[Math.floor(Math.random()*products.length)];
 
-  let content = `🔥 ${topic} trending blog. Buy now 👉 YOUR_AFFILIATE_LINK`;
+  let msg = `🔥 ${topic || p.name} trending 😍
 
-  db.collection("blogs").add({
+💸 Price: ${p.price}
+
+👉 Buy Now: ${p.link}
+
+⚡ Limited Offer!`;
+
+  await addDoc(collection(db, "posts"), {
     user: currentUser.uid,
-    topic: topic,
-    content: content,
-    time: new Date()
+    content: msg
   });
 
-  // 💰 earning add
-  let earn = Math.floor(Math.random()*50);
-
-  let userRef = db.collection("users").doc(currentUser.uid);
-  userRef.get().then(doc=>{
-    let total = doc.data().earnings + earn;
-    userRef.update({ earnings: total });
-    document.getElementById("earnings").innerText = "₹"+total;
-  });
-
-  // Share
-  window.open("https://wa.me/?text="+encodeURIComponent(content));
+  window.open("https://wa.me/?text="+encodeURIComponent(msg));
 }
 
-function loadEarnings(){
-  db.collection("users").doc(currentUser.uid).get()
-  .then(doc=>{
-    document.getElementById("earnings").innerText = "₹"+doc.data().earnings;
-  });
+// 📊 Track Click
+window.trackClick = async function(){
+  if(!currentUser) return;
+
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
+
+  let clicks = snap.data().clicks + 1;
+  let earnings = clicks * 2;
+
+  await updateDoc(ref, { clicks, earnings });
+
+  document.getElementById("earnings").innerText = "₹"+earnings;
+}
+
+// 💰 Load Earnings
+async function loadEarnings(){
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  document.getElementById("earnings").innerText = "₹"+snap.data().earnings;
 }
 
 // 👨‍💻 Admin
-function loadUsers(){
-  db.collection("users").get().then(snapshot=>{
-    let html="";
-    snapshot.forEach(doc=>{
-      let d = doc.data();
-      html += `<p>${d.email} - ₹${d.earnings}</p>`;
-    });
-    document.getElementById("users").innerHTML = html;
+window.loadUsers = async function(){
+  const querySnapshot = await getDocs(collection(db, "users"));
+
+  let html="";
+  querySnapshot.forEach(doc=>{
+    let d = doc.data();
+    html += `<p>${d.email} - ₹${d.earnings} (${d.clicks} clicks)</p>`;
   });
+
+  document.getElementById("users").innerHTML = html;
 }
 
-</script></body> 
-</html><script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+// 🤖 Auto Post हर 2 घंटे
+setInterval(()=>{
+  let p = products[Math.floor(Math.random()*products.length)];
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCoeqPZSmF7x-ewcUv1jTc4XOG-wkrAjCs",
-    authDomain: "reelnova-saas.firebaseapp.com",
-    projectId: "reelnova-saas",
-    storageBucket: "reelnova-saas.firebasestorage.app",
-    messagingSenderId: "405544472799",
-    appId: "1:405544472799:web:4161ebe5f6022d9e4f196a"
-  };
+  let msg = `🔥 ${p.name} trending 😍
+👉 Buy Now: ${p.link}`;
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  window.open("https://wa.me/?text="+encodeURIComponent(msg));
+}, 7200000);
+
 </script>
+
+</body>
+</html>
