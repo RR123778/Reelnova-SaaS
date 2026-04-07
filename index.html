@@ -13,15 +13,6 @@
 
 <div style="padding:15px;">
 
-  <!-- LOGIN -->
-  <div style="background:white; padding:15px; margin-bottom:15px; border-radius:10px;">
-    <h3>Login / Signup</h3>
-    <input id="email" placeholder="Email" style="width:100%; padding:10px;"><br><br>
-    <input id="password" type="password" placeholder="Password" style="width:100%; padding:10px;"><br><br>
-    <button onclick="signup()">Signup</button>
-    <button onclick="login()">Login</button>
-  </div>
-
   <!-- BLOG -->
   <div style="background:white; padding:15px; margin-bottom:15px; border-radius:10px;">
     <h3>Create Viral Post</h3>
@@ -61,34 +52,6 @@ const db = getFirestore();
 
 let currentUser = null;
 
-// 🔐 Signup
-window.signup = async function(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const userCred = await createUserWithEmailAndPassword(auth, email, password);
-
-  await setDoc(doc(db, "users", userCred.user.uid), {
-    email,
-    clicks: 0,
-    earnings: 0
-  });
-
-  alert("Signup Success");
-}
-
-// 🔐 Login
-window.login = async function(){
-  const userCred = await signInWithEmailAndPassword(auth,
-    document.getElementById("email").value,
-    document.getElementById("password").value
-  );
-
-  currentUser = userCred.user;
-  loadEarnings();
-  alert("Login Success");
-}
-
 // 🧠 Product List
 const products = [
   {
@@ -118,13 +81,7 @@ window.createPost = async function(){
   let topic = document.getElementById("topic").value;
   let p = products[Math.floor(Math.random()*products.length)];
 
-  let msg = `🔥 ${topic || p.name} trending 😍
-
-💸 Price: ${p.price}
-
-👉 Buy Now: ${p.link}
-
-⚡ Limited Offer!`;
+  let msg = `🔥 ${topic || p.name} trending 😍\n\n💸 Price: ${p.price}\n\n👉 Buy Now: ${p.link}\n\n⚡ Limited Offer!`;
 
   await addDoc(collection(db, "posts"), {
     user: currentUser.uid,
@@ -172,8 +129,7 @@ window.loadUsers = async function(){
 setInterval(()=>{
   let p = products[Math.floor(Math.random()*products.length)];
 
-  let msg = `🔥 ${p.name} trending 😍
-👉 Buy Now: ${p.link}`;
+  let msg = `🔥 ${p.name} trending 😍\n👉 Buy Now: ${p.link}`;
 
   window.open("https://wa.me/?text="+encodeURIComponent(msg));
 }, 7200000);
