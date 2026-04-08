@@ -1,100 +1,181 @@
-<!DOCTYPE html><html>
+
+<!DOCTYPE html>
+<html>
 <head>
 <title>ReelNova SaaS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-</head><body style="font-family:Arial;background:#f5f5f5;margin:0;"><header style="background:#ff4081;color:white;padding:15px;text-align:center;">
+
+<style>
+body{font-family:Arial;background:#f5f5f5;margin:0;}
+header{background:#ff4081;color:white;padding:15px;text-align:center;}
+.card{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
+button{
+  background:#ff4081;
+  color:white;
+  padding:10px;
+  border:none;
+  border-radius:5px;
+  margin:5px 0;
+  width:100%;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
 <h2>ReelNova SaaS Platform</h2>
-</header><div style="padding:15px;"><div style="background:white;padding:10px;margin-bottom:10px;border-radius:10px;">
-<b>Select Language:</b>
+</header>
+
+<div style="padding:15px;">
+
+<div class="card">
+<b>Select Language:</b><br><br>
 <button onclick="setLang('hi')">Hindi</button>
 <button onclick="setLang('en')">English</button>
 <button onclick="setLang('hinglish')">Hinglish</button>
-<button onclick="setLang('bn')">Bengali</button>
-<button onclick="setLang('mr')">Marathi</button>
-</div><div style="background:white;padding:15px;margin-bottom:15px;border-radius:10px;">
+</div>
+
+<div class="card">
 <h3>Create Content</h3>
 <input id="topic" placeholder="Enter topic" style="width:100%;padding:10px;"><br><br>
+
 <button onclick="generatePost()">Generate Post</button>
 <button onclick="generateBlog()">Generate Blog</button>
 <button onclick="generateKeywords()">SEO Keywords</button>
-</div><div style="background:white;padding:15px;margin-bottom:15px;border-radius:10px;">
+<button onclick="clearAll()">Clear</button>
+
+<p id="loading" style="display:none;color:#ff4081;"> Generating...</p>
+</div>
+
+<div class="card">
 <h3>Viral Post</h3>
 <p id="postOutput"></p>
+
 <button onclick="copyPost()">Copy</button>
 <button onclick="shareWhatsApp()">WhatsApp</button>
 <button onclick="goBlog()">Visit Blog</button>
 <button onclick="joinChannel()">Join Channel</button>
-</div><div style="background:white;padding:15px;margin-bottom:15px;border-radius:10px;">
+</div>
+
+<div class="card">
 <h3>Blog Content</h3>
-<textarea id="blogOutput" style="width:100%;height:200px;"></textarea><br><br>
+<textarea id="blogOutput" style="width:100%;height:200px;"></textarea>
 <button onclick="copyBlog()">Copy Blog</button>
-</div><div style="background:white;padding:15px;border-radius:10px;">
+</div>
+
+<div class="card">
 <h3>SEO Keywords</h3>
 <p id="keywords"></p>
-</div></div><script>
+</div>
+
+</div>
+
+<script>
 
 const BLOG_URL="https://fcramjee.blogspot.com";
 const CHANNEL_URL="https://whatsapp.com/channel/0029VbCOdaTKrWR0cuReYb2y";
 
 let currentPost="";
+let currentLang="en";
+let history=[];
 
 function setLang(l){
-alert("Language: "+l);
+currentLang=l;
+alert("Language set to: "+l);
 }
 
-function detectType(topic){
-topic=topic.toLowerCase();
-if(topic.includes("earn")||topic.includes("paisa")||topic.includes("job")) return "earning";
-if(topic.includes("health")||topic.includes("ilaj")||topic.includes("pet")) return "health";
-if(topic.includes("news")||topic.includes("today")||topic.includes("update")) return "news";
-return "deal";
+function getHashtags(topic){
+return "#"+topic.replaceAll(" ","")+" #viral #trending #reels";
+}
+
+function saveHistory(post){
+history.unshift(post);
+if(history.length>5) history.pop();
+console.log("History:",history);
 }
 
 function generatePost(){
-let topic=document.getElementById("topic").value||"Hot Deal";
-let type=detectType(topic);
 
-if(type==="earning"){
-currentPost="💰 "+topic+"\n\nघर बैठे कमाई का मौका\n\n👉 "+BLOG_URL+"\n\n📢 "+CHANNEL_URL;
+let topic=document.getElementById("topic").value;
+
+if(!topic.trim()){
+alert("Please enter topic");
+return;
 }
-else if(type==="health"){
-currentPost="🏥 "+topic+"\n\nआसान घरेलू उपाय\n\n👉 "+BLOG_URL+"\n\n📢 "+CHANNEL_URL;
+
+document.getElementById("loading").style.display="block";
+
+setTimeout(()=>{
+
+if(currentLang==="hi"){
+currentPost=" "+topic+"\n\n     \n\n "+BLOG_URL;
 }
-else if(type==="news"){
-currentPost="📰 "+topic+"\n\nआज की बड़ी खबर\n\n👉 "+BLOG_URL+"\n\n📢 "+CHANNEL_URL;
+else if(currentLang==="en"){
+currentPost=" "+topic+"\n\n Best way to earn online\n\n "+BLOG_URL;
 }
 else{
-currentPost="🔥 "+topic+" 😍\n\nआज का सबसे सस्ता ऑफर\n\n👉 "+BLOG_URL+"\n\n📢 "+CHANNEL_URL;
+currentPost=" "+topic+"\n\n Paisa kamane ka best tarika\n\n "+BLOG_URL;
 }
 
+currentPost += "\n\n Join: "+CHANNEL_URL;
+currentPost += "\n\n"+getHashtags(topic);
+
 document.getElementById("postOutput").innerText=currentPost;
+
+saveHistory(currentPost);
+
+document.getElementById("loading").style.display="none";
+
+},1000);
 }
 
 function generateBlog(){
-let topic=document.getElementById("topic").value||"Best Deal";
 
-document.getElementById("blogOutput").value=
-topic+"\n\n👉 पूरी जानकारी:\n"+BLOG_URL+"\n\n📢 "+CHANNEL_URL;
+let topic=document.getElementById("topic").value;
+
+if(!topic.trim()){
+alert("Please enter topic");
+return;
+}
+
+document.getElementById("blogOutput").value =
+topic + "\n\n Full detail:\n" + BLOG_URL + "\n\n Join:\n" + CHANNEL_URL;
 }
 
 function generateKeywords(){
-let topic=document.getElementById("topic").value||"deal";
 
-document.getElementById("keywords").innerText=
-topic+" under 299, "+topic+" deal, cheap "+topic+", buy "+topic;
+let topic=document.getElementById("topic").value;
+
+if(!topic.trim()){
+alert("Please enter topic");
+return;
+}
+
+document.getElementById("keywords").innerText =
+topic + ", best " + topic + ", " + topic + " India, cheap " + topic + ", trending " + topic;
 }
 
 function copyPost(){
+if(!currentPost){
+alert("Pehle post generate karo");
+return;
+}
 navigator.clipboard.writeText(currentPost);
-alert("Copied");
+alert(" Post Copied");
 }
 
 function copyBlog(){
 navigator.clipboard.writeText(document.getElementById("blogOutput").value);
-alert("Copied");
+alert(" Blog Copied");
 }
 
 function shareWhatsApp(){
+if(!currentPost){
+alert("Pehle post generate karo");
+return;
+}
 window.open("https://wa.me/?text="+encodeURIComponent(currentPost));
 }
 
@@ -106,7 +187,14 @@ function joinChannel(){
 window.open(CHANNEL_URL);
 }
 
-setInterval(generatePost,15000);
+function clearAll(){
+document.getElementById("topic").value="";
+document.getElementById("postOutput").innerText="";
+document.getElementById("blogOutput").value="";
+document.getElementById("keywords").innerText="";
+}
 
-</script></body>
+</script>
+
+</body>
 </html>
